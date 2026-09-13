@@ -18,7 +18,7 @@ def main() -> None:
     client = ModelClient()
 
     for tier in ("small", "large"):
-        r = client.complete(tier, PROMPT, max_tokens=20)
+        r = client.complete(tier, PROMPT, max_tokens=300)
         print(f"\n--- {tier.upper()} ({r.model}) ---")
         print(f"reply       : {r.text.strip()!r}")
         print(f"in tokens   : {r.input_tokens}")

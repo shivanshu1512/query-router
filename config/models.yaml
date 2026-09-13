@@ -16,26 +16,21 @@ provider: groq
 
 models:
   small:
-    # The cheap model. Handles the easy queries.
-    name: llama-3.1-8b-instant
-    # Simulated price in USD per 1 million tokens.
-    # Placeholder = GPT-4o-mini-class pricing. VERIFY on the vendor page
-    # before you report any final number.
+    name: openai/gpt-oss-20b
+    # Groq actual: $0.075 / $0.30 per 1M
+    # Simulated (GPT-4o-mini class) for the cost story:
     price_per_1m_input: 0.15
     price_per_1m_output: 0.60
 
   large:
-    # The expensive model. Our quality ceiling and cost ceiling.
-    name: llama-3.3-70b-versatile
-    # Placeholder = GPT-4o-class pricing. VERIFY before reporting.
+    name: openai/gpt-oss-120b
+    # Groq actual: $0.15 / $0.60 per 1M
+    # Simulated (GPT-4o class):
     price_per_1m_input: 2.50
     price_per_1m_output: 10.00
 
   judge:
-    # Used only for pairwise comparison of small vs large answers.
-    # Its cost is NOT part of serving cost — it is an offline evaluation cost.
-    # Track it separately and say so in the README.
-    name: llama-3.3-70b-versatile
+    name: openai/gpt-oss-120b
     price_per_1m_input: 2.50
     price_per_1m_output: 10.00
 
