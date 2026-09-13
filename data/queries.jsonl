@@ -1,0 +1,40 @@
+{"id": "fact_001", "category": "factual", "query": "What is the capital of Australia?"}
+{"id": "fact_002", "category": "factual", "query": "Who wrote the novel 'Things Fall Apart'?"}
+{"id": "fact_003", "category": "factual", "query": "How many bones are in the adult human body?"}
+{"id": "fact_004", "category": "factual", "query": "What does HTTP status code 429 mean?"}
+{"id": "fact_005", "category": "factual", "query": "In which year did the Chernobyl disaster occur?"}
+{"id": "fact_006", "category": "factual", "query": "What is the boiling point of water at sea level in Celsius?"}
+{"id": "fact_007", "category": "factual", "query": "Which planet in our solar system has the most moons?"}
+{"id": "fact_008", "category": "factual", "query": "What does the acronym SQL stand for?"}
+{"id": "fact_009", "category": "factual", "query": "Who is credited with inventing the World Wide Web?"}
+{"id": "fact_010", "category": "factual", "query": "What is the chemical symbol for potassium?"}
+{"id": "fact_011", "category": "factual", "query": "What is the largest ocean on Earth?"}
+{"id": "fact_012", "category": "factual", "query": "What is the chemical symbol for gold?"}
+{"id": "fact_013", "category": "factual", "query": "Who painted the Mona Lisa?"}
+{"id": "fact_014", "category": "factual", "query": "In which year did World War II end?"}
+{"id": "fact_015", "category": "factual", "query": "What is the official currency of Japan?"}
+{"id": "fact_016", "category": "factual", "query": "Which is the tallest mountain above sea level?"}
+{"id": "fact_017", "category": "factual", "query": "How many players from one team are on the field in a football (soccer) match?"}
+{"id": "fact_018", "category": "factual", "query": "Which gas do plants absorb from the atmosphere during photosynthesis?"}
+{"id": "fact_019", "category": "factual", "query": "Which is the largest planet in our solar system?"}
+{"id": "fact_020", "category": "factual", "query": "Who was the first person to walk on the Moon?"}
+{"id": "fact_021", "category": "factual", "query": "What is the freezing point of water in Fahrenheit?"}
+{"id": "fact_022", "category": "factual", "query": "What does DNS stand for in networking?"}
+{"id": "fact_023", "category": "factual", "query": "Which city hosted the 1996 Summer Olympics?"}
+{"id": "fact_024", "category": "factual", "query": "What is the atomic number of carbon?"}
+{"id": "fact_025", "category": "factual", "query": "Who discovered penicillin?"}
+{"id": "fact_026", "category": "factual", "query": "In which year was the Treaty of Versailles signed?"}
+{"id": "fact_027", "category": "factual", "query": "What is the default TCP port number for HTTPS?"}
+{"id": "fact_028", "category": "factual", "query": "Which chemical element has the symbol W?"}
+{"id": "fact_029", "category": "factual", "query": "What does RAM stand for in computing?"}
+{"id": "fact_030", "category": "factual", "query": "What is the longest river in South America?"}
+{"id": "fact_031", "category": "factual", "query": "Who wrote the novel 'One Hundred Years of Solitude'?"}
+{"id": "fact_032", "category": "factual", "query": "What is the speed of light in a vacuum in metres per second?"}
+{"id": "fact_033", "category": "factual", "query": "What does HTTP status code 418 mean?"}
+{"id": "fact_034", "category": "factual", "query": "What is the approximate value of the Chandrasekhar limit in solar masses?"}
+{"id": "fact_035", "category": "factual", "query": "In which year was the first message sent over ARPANET?"}
+{"id": "fact_036", "category": "factual", "query": "What is the SI unit of magnetic flux?"}
+{"id": "fact_037", "category": "factual", "query": "Who won the first Nobel Prize in Physics?"}
+{"id": "fact_038", "category": "factual", "query": "What does the acronym RAID stand for in storage systems?"}
+{"id": "fact_039", "category": "factual", "query": "What is the time complexity of building a binary heap from an unsorted array of n elements?"}
+{"id": "fact_040", "category": "factual", "query": "In the CAP theorem, what does the letter P stand for?"}
