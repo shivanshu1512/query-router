@@ -1,0 +1,18 @@
+# SECRETS — never commit these
+.env
+
+# Virtual environment (rebuildable from uv.lock, so it does not belong in git)
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db

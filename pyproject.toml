@@ -1,0 +1,27 @@
+[project]
+name = "query-router"
+version = "0.1.0"
+description = "Routes LLM queries to a small or large model based on predicted difficulty, and measures the cost/quality trade-off."
+readme = "README.md"
+requires-python = ">=3.11"
+
+# Day-1 dependencies only. We add more as we need them:
+#   Week 1 -> sentence-transformers, scikit-learn
+#   Week 3 -> fastapi, uvicorn
+dependencies = [
+    "groq>=0.11.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
