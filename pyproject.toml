@@ -1,0 +1,56 @@
+[project]
+name = "query-router"
+version = "0.1.0"
+description = "Cost-optimized LLM query router with pairwise evaluation and real metrics"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Shivanshu Shukla", email = "shivanshu1512@gmail.com"},
+]
+keywords = ["llm", "routing", "cost-optimization", "eval"]
+
+dependencies = [
+    "httpx>=0.27,<1.0",
+    "python-dotenv>=1.0,<2.0",
+    "pydantic>=2.5,<3.0",
+    "tiktoken>=0.8,<1.0",
+    "pandas>=2.1,<3.0",
+    "scikit-learn>=1.4,<2.0",
+    "tqdm>=4.66,<5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9.0",
+    "pytest-asyncio>=0.23,<1.0",
+    "ruff>=0.4,<1.0",
+    "pre-commit>=3.6,<4.0",
+]
+serve = [
+    "fastapi>=0.111,<1.0",
+    "uvicorn[standard]>=0.30,<1.0",
+]
+trace = [
+    "langfuse>=2.40,<3.0",
+]
+
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501", "N806", "N803"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
