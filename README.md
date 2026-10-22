@@ -80,7 +80,14 @@ copy .env.example .env
 pytest tests/ -v
 ```
 
-### 3. Run Oracle Pipeline (needs API key)
+### 3. Tool Calling Demo (Prerequisite / Step 4)
+
+```bash
+# Offline simulation or live execution with API keys
+python examples/calculator_tool.py
+```
+
+### 4. Run Oracle Pipeline (needs API key)
 
 ```bash
 # Test with 5 queries first (~$0.05)
@@ -90,13 +97,13 @@ python -m query_router.oracle --max-queries 5
 python -m query_router.oracle
 ```
 
-### 4. Train Router
+### 5. Train Router
 
 ```bash
 python -m query_router.router --oracle-results data/results/oracle_results_*.jsonl
 ```
 
-### 5. Deploy API
+### 6. Deploy API
 
 ```bash
 pip install -e ".[serve]"
