@@ -1,0 +1,38 @@
+# Model configuration.
+#
+# WHY THIS FILE EXISTS:
+# Prices must never be hardcoded in Python. They change, and we want to be able
+# to ask "what if the large model were 20x the price of the small one?" without
+# touching any code.
+#
+# IMPORTANT — how cost works in this project:
+# We run inference on Groq's free tier, so our real spend is zero. But the TOKEN
+# COUNTS we measure are real. We apply commercial prices (below) to those real
+# token counts to simulate what a paid deployment would cost.
+# This must be stated honestly in the README.
+
+# Which provider actually serves the requests.
+provider: groq
+
+models:
+  small:
+    name: openai/gpt-oss-20b
+    # Groq actual: $0.075 / $0.30 per 1M
+    # Simulated (GPT-4o-mini class) for the cost story:
+    price_per_1m_input: 0.15
+    price_per_1m_output: 0.60
+
+  large:
+    name: openai/gpt-oss-120b
+    # Groq actual: $0.15 / $0.60 per 1M
+    # Simulated (GPT-4o class):
+    price_per_1m_input: 2.50
+    price_per_1m_output: 10.00
+
+  judge:
+    name: openai/gpt-oss-120b
+    price_per_1m_input: 2.50
+    price_per_1m_output: 10.00
+
+# For reporting figures in rupees as well as dollars.
+usd_to_inr: 88.0
