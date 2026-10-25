@@ -5,10 +5,7 @@ If the maths here is wrong, every number in the final README is wrong too.
 """
 
 import pytest
-
-from src.config import ModelSpec, load_config
-from src.models import CallResult, Ledger
-
+from src.config import ModelSpec
 
 # A fixed spec with round numbers, so the expected values can be
 # worked out by hand. Deliberately NOT read from models.yaml — if we

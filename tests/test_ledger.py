@@ -6,7 +6,6 @@ to do silently.
 """
 
 import pytest
-
 from src.models import CallResult, Ledger
 
 
