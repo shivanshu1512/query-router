@@ -1,5 +1,10 @@
 """
-Smoke test — run a single query through the LLM client to verify API keys work.
+Smoke test — run a test query through the LLM client to verify API keys work.
+
+Supports:
+  - Google Gemini (Free on Google AI Studio)
+  - Groq (Free Tier)
+  - OpenAI / Anthropic
 
 Usage:
     python -m query_router.smoke_test
@@ -7,51 +12,90 @@ Usage:
 
 from __future__ import annotations
 
+import os
+import sys
 from dotenv import load_dotenv
+
+# Fix Windows console UTF-8 output
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 load_dotenv()
 
 
 def main():
-    print("=" * 60)
-    print("  SMOKE TEST — Verifying API keys and LLM client")
-    print("=" * 60)
+    print("=" * 65)
+    print("  SMOKE TEST — Verifying API keys and LLM client connectivity")
+    print("=" * 65)
 
     from query_router.llm_client import call_llm
     from query_router.pricing import get_pricing
 
-    # Test 1: OpenAI
-    print("\n[1/2] Testing OpenAI (gpt-4o-mini)...")
-    try:
-        resp = call_llm("What is 2+2? Reply with just the number.", model="gpt-4o-mini")
-        print(f"  ✓ Response: {resp.response.strip()}")
-        print(f"  ✓ Tokens: {resp.input_tokens} in, {resp.output_tokens} out")
-        print(f"  ✓ Cost: {resp.cost_display}")
-        print(f"  ✓ Latency: {resp.latency_ms:.0f}ms")
-    except Exception as e:
-        print(f"  ✗ OpenAI FAILED: {e}")
-        print("  → Check your OPENAI_API_KEY in .env")
+    has_any = False
 
-    # Test 2: OpenAI large model
-    print("\n[2/2] Testing OpenAI (gpt-4o)...")
-    try:
-        resp = call_llm("What is 2+2? Reply with just the number.", model="gpt-4o")
-        print(f"  ✓ Response: {resp.response.strip()}")
-        print(f"  ✓ Tokens: {resp.input_tokens} in, {resp.output_tokens} out")
-        print(f"  ✓ Cost: {resp.cost_display}")
-        print(f"  ✓ Latency: {resp.latency_ms:.0f}ms")
-    except Exception as e:
-        print(f"  ✗ GPT-4o FAILED: {e}")
-        print("  → Check your OPENAI_API_KEY in .env")
+    # 1. Test Groq if key is set
+    groq_key = os.environ.get("GROQ_API_KEY")
+    if groq_key and not groq_key.startswith("gsk_paste"):
+        has_any = True
+        print("\n[Groq] Testing openai/gpt-oss-20b (Small model)...")
+        try:
+            resp = call_llm("What is 2+2? Reply with just the number.", model="openai/gpt-oss-20b")
+            print(f"  [OK] Response: {resp.response.strip()}")
+            print(f"  [OK] Tokens: {resp.input_tokens} in, {resp.output_tokens} out")
+            print(f"  [OK] Simulated Cost: {resp.cost_display}")
+            print(f"  [OK] Latency: {resp.latency_ms:.0f}ms")
+        except Exception as e:
+            print(f"  [FAIL] Groq test failed: {e}")
 
-    # Cost comparison
-    mini_price = get_pricing("gpt-4o-mini")
-    large_price = get_pricing("gpt-4o")
-    ratio_in = large_price.input_per_1m / mini_price.input_per_1m
-    ratio_out = large_price.output_per_1m / mini_price.output_per_1m
-    print(f"\n[cost] GPT-4o is {ratio_in:.0f}x more expensive per input token")
-    print(f"[cost] GPT-4o is {ratio_out:.0f}x more expensive per output token")
-    print("[cost] This is why routing matters.\n")
+        print("\n[Groq] Testing openai/gpt-oss-120b (Large / Judge model)...")
+        try:
+            resp = call_llm("What is 2+2? Reply with just the number.", model="openai/gpt-oss-120b")
+            print(f"  [OK] Response: {resp.response.strip()}")
+            print(f"  [OK] Tokens: {resp.input_tokens} in, {resp.output_tokens} out")
+            print(f"  [OK] Simulated Cost: {resp.cost_display}")
+            print(f"  [OK] Latency: {resp.latency_ms:.0f}ms")
+        except Exception as e:
+            print(f"  [FAIL] Groq test failed: {e}")
+    elif groq_key and groq_key.startswith("gsk_paste"):
+        print("\n[Groq] GROQ_API_KEY is set to placeholder.")
+        print("  --> Please get your free key from https://console.groq.com/keys and paste it in .env")
+
+    # 2. Test Google Gemini if key is set
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    if gemini_key and not gemini_key.startswith("AIzaSy..."):
+        has_any = True
+        print("\n[Google Gemini] Testing gemini-3.5-flash-lite...")
+        try:
+            resp = call_llm("What is 2+2? Reply with just the number.", model="gemini-3.5-flash-lite")
+            print(f"  [OK] Response: {resp.response.strip()}")
+            print(f"  [OK] Tokens: {resp.input_tokens} in, {resp.output_tokens} out")
+            print(f"  [OK] Simulated Cost: {resp.cost_display}")
+            print(f"  [OK] Latency: {resp.latency_ms:.0f}ms")
+        except Exception as e:
+            print(f"  [FAIL] Gemini test failed: {e}")
+
+    # 3. Test OpenAI if key is set
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key and not openai_key.startswith("sk-..."):
+        has_any = True
+        print("\n[OpenAI] Testing gpt-4o-mini...")
+        try:
+            resp = call_llm("What is 2+2? Reply with just the number.", model="gpt-4o-mini")
+            print(f"  [OK] Response: {resp.response.strip()}")
+            print(f"  [OK] Tokens: {resp.input_tokens} in, {resp.output_tokens} out")
+            print(f"  [OK] Cost: {resp.cost_display}")
+            print(f"  [OK] Latency: {resp.latency_ms:.0f}ms")
+        except Exception as e:
+            print(f"  [FAIL] OpenAI test failed: {e}")
+
+    if not has_any:
+        print("\n[!] No active API keys detected in .env.")
+        print("    Add GEMINI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY in .env")
+
+    print("\n" + "=" * 65 + "\n")
 
 
 if __name__ == "__main__":

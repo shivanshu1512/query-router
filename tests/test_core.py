@@ -34,6 +34,9 @@ class TestPricing:
         """All expected models are in the pricing table."""
         assert "gpt-4o" in PRICING
         assert "gpt-4o-mini" in PRICING
+        assert "gemini-1.5-pro" in PRICING
+        assert "gemini-1.5-flash" in PRICING
+        assert "llama-3.1-8b-instant" in PRICING
 
     def test_pricing_lookup_missing_raises(self):
         """Unknown model raises KeyError with helpful message."""

@@ -4,10 +4,12 @@ Pricing data for LLM API models.
 Source of truth for per-token costs. Updated manually when providers change pricing.
 All costs in USD per 1M tokens.
 
-Last updated: 2026-10-22
+Last updated: 2026-10-29
 Sources:
   - https://openai.com/api/pricing/
   - https://www.anthropic.com/pricing
+  - https://ai.google.dev/pricing
+  - https://groq.com/pricing
 """
 
 from __future__ import annotations
@@ -21,7 +23,7 @@ class ModelPricing:
 
     input_per_1m: float   # USD per 1M input tokens
     output_per_1m: float  # USD per 1M output tokens
-    provider: str         # "openai" or "anthropic"
+    provider: str         # "openai", "anthropic", "gemini", or "groq"
 
     def cost(self, input_tokens: int, output_tokens: int) -> float:
         """Calculate the total cost in USD for a given number of tokens."""
@@ -60,6 +62,58 @@ PRICING: dict[str, ModelPricing] = {
         input_per_1m=0.80,
         output_per_1m=4.00,
         provider="anthropic",
+    ),
+    # Google Gemini — https://ai.google.dev/pricing (Free on AI Studio, simulated commercial cost)
+    "gemini-3.5-flash": ModelPricing(
+        input_per_1m=0.10,
+        output_per_1m=0.40,
+        provider="gemini",
+    ),
+    "gemini-3.5-flash-lite": ModelPricing(
+        input_per_1m=0.05,
+        output_per_1m=0.15,
+        provider="gemini",
+    ),
+    "gemini-3-flash-preview": ModelPricing(
+        input_per_1m=0.15,
+        output_per_1m=0.60,
+        provider="gemini",
+    ),
+    "gemini-1.5-pro": ModelPricing(
+        input_per_1m=1.25,
+        output_per_1m=5.00,
+        provider="gemini",
+    ),
+    "gemini-1.5-flash": ModelPricing(
+        input_per_1m=0.075,
+        output_per_1m=0.30,
+        provider="gemini",
+    ),
+    "gemini-2.0-flash": ModelPricing(
+        input_per_1m=0.10,
+        output_per_1m=0.40,
+        provider="gemini",
+    ),
+    # Groq — https://groq.com/pricing (Free inference tier, simulated commercial cost)
+    "openai/gpt-oss-120b": ModelPricing(
+        input_per_1m=0.60,
+        output_per_1m=1.20,
+        provider="groq",
+    ),
+    "openai/gpt-oss-20b": ModelPricing(
+        input_per_1m=0.075,
+        output_per_1m=0.15,
+        provider="groq",
+    ),
+    "llama-3.3-70b-versatile": ModelPricing(
+        input_per_1m=0.59,
+        output_per_1m=0.79,
+        provider="groq",
+    ),
+    "llama-3.1-8b-instant": ModelPricing(
+        input_per_1m=0.05,
+        output_per_1m=0.08,
+        provider="groq",
     ),
 }
 

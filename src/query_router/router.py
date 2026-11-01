@@ -13,9 +13,17 @@ Approach inspired by FrugalGPT (Chen, Zaharia, Stoica, 2023)
 
 from __future__ import annotations
 
+import glob
 import json
 import pickle
+import sys
 from pathlib import Path
+
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 from typing import Any
 
 import numpy as np
@@ -212,11 +220,11 @@ class QueryRouter:
 
         # Also save metrics as JSON for easy inspection
         metrics_path = save_path.with_suffix(".metrics.json")
-        with open(metrics_path, "w") as f:
+        with open(metrics_path, "w", encoding="utf-8") as f:
             json.dump(self.metrics, f, indent=2)
 
-        print(f"[saved] Router model → {save_path}")
-        print(f"[saved] Metrics → {metrics_path}")
+        print(f"[saved] Router model -> {save_path}")
+        print(f"[saved] Metrics -> {metrics_path}")
 
     def load(self, path: str = "models/router.pkl") -> None:
         """Load a trained router from disk."""
@@ -233,14 +241,18 @@ class QueryRouter:
 
 
 def load_oracle_records(path: str) -> list[OracleRecord]:
-    """Load oracle records from a JSONL file."""
+    """Load oracle records from a JSONL file or wildcard pattern."""
+    target_files = sorted(glob.glob(path)) if ('*' in path or '?' in path) else [path]
+    if not target_files:
+        raise FileNotFoundError(f"No files matched: {path}")
     records = []
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                records.append(OracleRecord.model_validate_json(line))
-    print(f"[loaded] {len(records)} oracle records from {path}")
+    for fpath in target_files:
+        with open(fpath, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    records.append(OracleRecord.model_validate_json(line))
+        print(f"[loaded] {len(records)} oracle records from {fpath}")
     return records
 
 
@@ -263,7 +275,7 @@ def train_router_from_file(
     print(f"{'='*60}")
     print(f"  Accuracy:   {metrics['accuracy']:.3f}")
     print(f"  F1 Score:   {metrics['f1_score']:.3f}")
-    print(f"  CV F1:      {metrics['cv_f1_mean']:.3f} ± {metrics['cv_f1_std']:.3f}")
+    print(f"  CV F1:      {metrics['cv_f1_mean']:.3f} +/- {metrics['cv_f1_std']:.3f}")
     print(f"  Train size: {metrics['train_size']}")
     print(f"  Test size:  {metrics['test_size']}")
     print(f"{'='*60}\n")

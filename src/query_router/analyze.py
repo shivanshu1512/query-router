@@ -15,7 +15,7 @@ from query_router.schemas import OracleRecord
 def analyze_results(results_path: str) -> None:
     """Load oracle results and print detailed cost analysis."""
     records: list[OracleRecord] = []
-    with open(results_path) as f:
+    with open(results_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:

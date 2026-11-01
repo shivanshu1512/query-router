@@ -10,9 +10,20 @@ Output: 3 numbers — always-large cost, always-small cost, oracle cost.
 
 from __future__ import annotations
 
+import os
+import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Fix Windows console UTF-8 output
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+from dotenv import load_dotenv
 from tqdm import tqdm
 
 from query_router.dataset import get_queries
@@ -25,12 +36,19 @@ from query_router.schemas import (
     RoutingLabel,
 )
 
+load_dotenv()
+
+DEFAULT_LARGE = os.environ.get("LARGE_MODEL", "gpt-4o")
+DEFAULT_SMALL = os.environ.get("SMALL_MODEL", "gpt-4o-mini")
+DEFAULT_JUDGE = os.environ.get("JUDGE_MODEL", DEFAULT_LARGE)
+
 
 def run_oracle_pipeline(
-    large_model: str = "gpt-4o",
-    small_model: str = "gpt-4o-mini",
-    judge_model: str = "gpt-4o",
+    large_model: str = DEFAULT_LARGE,
+    small_model: str = DEFAULT_SMALL,
+    judge_model: str = DEFAULT_JUDGE,
     output_dir: str = "data/results",
+    output_file: str | None = None,
     max_queries: int | None = None,
     resume_from: str | None = None,
 ) -> DatasetStats:
@@ -48,6 +66,7 @@ def run_oracle_pipeline(
         small_model: The cheap, good-enough model.
         judge_model: The model used as judge.
         output_dir: Where to save results.
+        output_file: Optional explicit file path for results JSONL.
         max_queries: Limit queries for testing (None = all 200).
         resume_from: Path to partial results JSONL to resume from.
 
@@ -59,8 +78,12 @@ def run_oracle_pipeline(
     out_path.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    results_file = out_path / f"oracle_results_{timestamp}.jsonl"
-    stats_file = out_path / f"oracle_stats_{timestamp}.json"
+    if output_file:
+        results_file = Path(output_file)
+        stats_file = results_file.with_name(f"{results_file.stem}.stats.json")
+    else:
+        results_file = out_path / f"oracle_results_{timestamp}.jsonl"
+        stats_file = out_path / f"oracle_stats_{timestamp}.json"
 
     # Load queries
     queries = get_queries()
@@ -70,14 +93,19 @@ def run_oracle_pipeline(
     # Resume support — load already-processed query IDs
     completed_ids: set[int] = set()
     existing_records: list[OracleRecord] = []
-    if resume_from and Path(resume_from).exists():
-        print(f"[resume] Loading partial results from {resume_from}")
-        with open(resume_from) as f:
+    resume_target = resume_from or (str(results_file) if output_file and results_file.exists() else None)
+    if resume_target and Path(resume_target).exists():
+        results_file = Path(resume_target)
+        stats_file = results_file.with_name(f"{results_file.stem}.stats.json")
+        print(f"[resume] Resuming from existing results file: {results_file}")
+        with open(resume_target, encoding="utf-8") as f:
             for line in f:
-                rec = OracleRecord.model_validate_json(line.strip())
-                existing_records.append(rec)
-                completed_ids.add(rec.query_id)
-        print(f"[resume] Found {len(completed_ids)} completed queries")
+                line = line.strip()
+                if line:
+                    rec = OracleRecord.model_validate_json(line)
+                    existing_records.append(rec)
+                    completed_ids.add(rec.query_id)
+        print(f"[resume] Found {len(completed_ids)} already completed queries")
 
     records: list[OracleRecord] = list(existing_records)
 
@@ -98,72 +126,85 @@ def run_oracle_pipeline(
         query_id = q["id"]
         query_text = q["query"]
 
-        try:
-            # Step 1: Call large model
-            large_resp = call_llm(prompt=query_text, model=large_model)
+        success = False
+        for attempt in range(3):
+            try:
+                # Step 1: Call large model
+                large_resp = call_llm(prompt=query_text, model=large_model)
 
-            # Step 2: Call small model
-            small_resp = call_llm(prompt=query_text, model=small_model)
+                # Step 2: Call small model
+                small_resp = call_llm(prompt=query_text, model=small_model)
 
-            # Step 3: Judge — large is A, small is B
-            judgment = judge_pairwise(
-                query=query_text,
-                response_a=large_resp.response,
-                response_a_model=large_model,
-                response_b=small_resp.response,
-                response_b_model=small_model,
-                judge_model=judge_model,
-            )
+                # Step 3: Judge — large is A, small is B
+                judgment = judge_pairwise(
+                    query=query_text,
+                    response_a=large_resp.response,
+                    response_a_model=large_model,
+                    response_b=small_resp.response,
+                    response_b_model=small_model,
+                    judge_model=judge_model,
+                )
 
-            # Step 4: Derive oracle label
-            # Route to small if small is at least as good (TIE or B_BETTER)
-            # Route to large only if large is clearly better (A_BETTER)
-            if judgment.verdict == JudgeVerdict.A_BETTER:
-                oracle_label = RoutingLabel.ROUTE_LARGE
-            else:
-                oracle_label = RoutingLabel.ROUTE_SMALL
+                # Step 4: Derive oracle label
+                # Route to small if small is at least as good (TIE or B_BETTER)
+                # Route to large only if large is clearly better (A_BETTER)
+                if judgment.verdict == JudgeVerdict.A_BETTER:
+                    oracle_label = RoutingLabel.ROUTE_LARGE
+                else:
+                    oracle_label = RoutingLabel.ROUTE_SMALL
 
-            # Calculate per-query costs for each strategy
-            cost_if_large = large_resp.cost_usd
-            cost_if_small = small_resp.cost_usd
-            cost_oracle = cost_if_large if oracle_label == RoutingLabel.ROUTE_LARGE else cost_if_small
+                # Calculate per-query costs for each strategy
+                cost_if_large = large_resp.cost_usd
+                cost_if_small = small_resp.cost_usd
+                cost_oracle = cost_if_large if oracle_label == RoutingLabel.ROUTE_LARGE else cost_if_small
 
-            record = OracleRecord(
-                query_id=query_id,
-                query=query_text,
-                large_model=large_model,
-                large_response=large_resp.response,
-                large_input_tokens=large_resp.input_tokens,
-                large_output_tokens=large_resp.output_tokens,
-                large_cost_usd=large_resp.cost_usd,
-                large_latency_ms=large_resp.latency_ms,
-                small_model=small_model,
-                small_response=small_resp.response,
-                small_input_tokens=small_resp.input_tokens,
-                small_output_tokens=small_resp.output_tokens,
-                small_cost_usd=small_resp.cost_usd,
-                small_latency_ms=small_resp.latency_ms,
-                judge_verdict=judgment.verdict,
-                judge_reasoning=judgment.reasoning,
-                judge_model=judge_model,
-                judge_cost_usd=judgment.judge_cost_usd,
-                oracle_label=oracle_label,
-                cost_always_large=cost_if_large,
-                cost_always_small=cost_if_small,
-                cost_oracle=cost_oracle,
-            )
+                record = OracleRecord(
+                    query_id=query_id,
+                    query=query_text,
+                    large_model=large_model,
+                    large_response=large_resp.response,
+                    large_input_tokens=large_resp.input_tokens,
+                    large_output_tokens=large_resp.output_tokens,
+                    large_cost_usd=large_resp.cost_usd,
+                    large_latency_ms=large_resp.latency_ms,
+                    small_model=small_model,
+                    small_response=small_resp.response,
+                    small_input_tokens=small_resp.input_tokens,
+                    small_output_tokens=small_resp.output_tokens,
+                    small_cost_usd=small_resp.cost_usd,
+                    small_latency_ms=small_resp.latency_ms,
+                    judge_verdict=judgment.verdict,
+                    judge_reasoning=judgment.reasoning,
+                    judge_model=judge_model,
+                    judge_cost_usd=judgment.judge_cost_usd,
+                    oracle_label=oracle_label,
+                    cost_always_large=cost_if_large,
+                    cost_always_small=cost_if_small,
+                    cost_oracle=cost_oracle,
+                )
 
-            records.append(record)
-            total_judge_cost += judgment.judge_cost_usd
+                records.append(record)
+                total_judge_cost += judgment.judge_cost_usd
 
-            # Append to JSONL (crash-safe — each record written immediately)
-            with open(results_file, "a") as f:
-                f.write(record.model_dump_json() + "\n")
+                # Append to JSONL (crash-safe — each record written immediately)
+                with open(results_file, "a", encoding="utf-8") as f:
+                    f.write(record.model_dump_json() + "\n")
 
-        except Exception as e:
-            print(f"\n[ERROR] Query {query_id}: {e}")
-            # Continue to next query — don't lose progress
-            continue
+                time.sleep(2.0)
+                success = True
+                break
+
+            except Exception as e:
+                print(f"\n[ERROR] Query {query_id} (attempt {attempt + 1}/3): {e}")
+                if "429" in str(e) or "quota" in str(e).lower() or "ResourceExhausted" in str(e):
+                    wait = 20 * (attempt + 1)
+                    print(f"  [Rate Limit Pausing] Pausing {wait}s to allow API quota reset...")
+                    time.sleep(wait)
+                else:
+                    time.sleep(2.0)
+
+        if not success:
+            print(f"  [Skipped] Query {query_id} could not be processed after 3 attempts.")
 
     # ── Calculate final stats ──────────────────────────────────────────────
     if not records:
@@ -197,7 +238,7 @@ def run_oracle_pipeline(
     )
 
     # Save stats
-    with open(stats_file, "w") as f:
+    with open(stats_file, "w", encoding="utf-8") as f:
         f.write(stats.model_dump_json(indent=2))
 
     # Print the 3 numbers
@@ -212,11 +253,12 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Run the oracle pipeline")
-    parser.add_argument("--large-model", default="gpt-4o", help="Large (expensive) model")
-    parser.add_argument("--small-model", default="gpt-4o-mini", help="Small (cheap) model")
-    parser.add_argument("--judge-model", default="gpt-4o", help="Judge model")
+    parser.add_argument("--large-model", default=DEFAULT_LARGE, help=f"Large model (default: {DEFAULT_LARGE})")
+    parser.add_argument("--small-model", default=DEFAULT_SMALL, help=f"Small model (default: {DEFAULT_SMALL})")
+    parser.add_argument("--judge-model", default=DEFAULT_JUDGE, help=f"Judge model (default: {DEFAULT_JUDGE})")
     parser.add_argument("--max-queries", type=int, default=None, help="Limit queries (for testing)")
     parser.add_argument("--resume-from", default=None, help="Resume from partial JSONL results")
+    parser.add_argument("--output-file", default=None, help="Custom output JSONL file path (auto-resumes if exists)")
     parser.add_argument("--output-dir", default="data/results", help="Output directory")
 
     args = parser.parse_args()
@@ -226,6 +268,7 @@ if __name__ == "__main__":
         small_model=args.small_model,
         judge_model=args.judge_model,
         output_dir=args.output_dir,
+        output_file=args.output_file,
         max_queries=args.max_queries,
         resume_from=args.resume_from,
     )

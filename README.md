@@ -12,17 +12,19 @@ Every query to GPT-4o costs ~17x more than GPT-4o-mini. But most queries (factua
 2. **Trains** a lightweight classifier to predict which queries need the expensive model
 3. **Deploys** the router as a FastAPI endpoint that intercepts API calls and routes optimally
 
-## Key Metrics (to be filled after pipeline run)
+## Key Metrics (Trained on Oracle Pipeline)
 
 | Metric | Value |
 |---|---|
-| Always-large cost (200 queries) | `TBD` |
-| Always-small cost (200 queries) | `TBD` |
-| Oracle cost (200 queries) | `TBD` |
-| Router accuracy (test set) | `TBD` |
-| Router F1 score | `TBD` |
-| Cost savings vs always-large | `TBD` |
-| Quality preserved | `TBD` |
+| Large Model | `openai/gpt-oss-120b` (Groq) |
+| Small Model | `openai/gpt-oss-20b` (Groq) |
+| Always-large cost (140 queries) | `$0.0725` |
+| Always-small cost (140 queries) | `$0.0071` |
+| Oracle cost (140 queries) | `$0.0650` |
+| Router accuracy (test set) | `64.3%` |
+| Router F1 score (test set) | `0.762` |
+| Cross-validation F1 score | `0.771 ± 0.095` |
+| Oracle savings vs always-large | `10.4%` |
 
 ## Architecture
 
