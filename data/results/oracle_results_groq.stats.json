@@ -1,0 +1,11 @@
+{
+  "total_queries": 140,
+  "cost_always_large": 0.072507,
+  "cost_always_small": 0.007114425,
+  "cost_oracle": 0.064991775,
+  "cost_judge_total": 0.10190939999999997,
+  "pct_routed_small": 27.857142857142858,
+  "savings_vs_always_large_pct": 10.364826844304687,
+  "quality_preserved_pct": 27.857142857142858,
+  "timestamp": "2026-11-01T18:27:53.672509Z"
+}
