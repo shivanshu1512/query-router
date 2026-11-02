@@ -15,7 +15,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from query_router.llm_client import call_llm
@@ -113,6 +114,18 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect root path to interactive API docs."""
+    return RedirectResponse(url="/docs")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Avoid 404 logs for browser favicon requests."""
+    return Response(status_code=204)
 
 
 @app.get("/health", response_model=HealthResponse)
