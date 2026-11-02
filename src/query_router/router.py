@@ -13,6 +13,7 @@ Approach inspired by FrugalGPT (Chen, Zaharia, Stoica, 2023)
 
 from __future__ import annotations
 
+import contextlib
 import glob
 import json
 import pickle
@@ -20,10 +21,8 @@ import sys
 from pathlib import Path
 
 if sys.platform == 'win32':
-    try:
+    with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding='utf-8')
-    except Exception:
-        pass
 from typing import Any
 
 import numpy as np

@@ -10,6 +10,7 @@ Output: 3 numbers — always-large cost, always-small cost, oracle cost.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import sys
 import time
@@ -18,10 +19,8 @@ from pathlib import Path
 
 # Fix Windows console UTF-8 output
 if sys.platform == "win32":
-    try:
+    with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
 
 from dotenv import load_dotenv
 from tqdm import tqdm

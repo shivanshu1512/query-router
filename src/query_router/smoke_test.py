@@ -12,16 +12,16 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import sys
+
 from dotenv import load_dotenv
 
 # Fix Windows console UTF-8 output
 if sys.platform == "win32":
-    try:
+    with contextlib.suppress(Exception):
         sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
 
 load_dotenv()
 
@@ -32,7 +32,6 @@ def main():
     print("=" * 65)
 
     from query_router.llm_client import call_llm
-    from query_router.pricing import get_pricing
 
     has_any = False
 
