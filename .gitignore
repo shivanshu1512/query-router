@@ -28,6 +28,7 @@ data/raw/*.jsonl
 !data/raw/.gitkeep
 data/results/*.jsonl
 !data/results/.gitkeep
+!data/results/oracle_results_groq.jsonl
 
 # Logs
 logs/
@@ -48,3 +49,4 @@ Thumbs.db
 models/*.pkl
 models/*.joblib
 !models/.gitkeep
+!models/router.pkl

@@ -12,6 +12,7 @@
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
     <a href="https://github.com/shivanshu1512/query-router/actions"><img src="https://img.shields.io/badge/CI-passing-brightgreen?logo=githubactions&logoColor=white" alt="CI"></a>
     <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
+    <a href="https://streamlit.io/"><img src="https://img.shields.io/badge/UI-Streamlit-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit"></a>
   </p>
 </p>
 
@@ -138,6 +139,8 @@ query-router/
 │
 ├── .github/workflows/ci.yml   # GitHub Actions CI (lint + test)
 ├── pyproject.toml             # Dependencies & project config
+├── requirements.txt           # Production & Streamlit Cloud dependencies
+├── streamlit_app.py           # Premium Streamlit UI dashboard & playground
 ├── .env.example               # API key template
 └── README.md
 ```
@@ -222,6 +225,36 @@ python -m uvicorn query_router.server:app --reload --port 8000
 ```
 
 Open **http://localhost:8000/docs** for interactive Swagger UI.
+
+### 7. Launch Streamlit UI Dashboard
+
+```bash
+# Install UI dependencies
+pip install -e ".[ui]"
+
+# Run Streamlit app
+streamlit run streamlit_app.py
+```
+
+Open **http://localhost:8501** for the interactive web dashboard with real-time routing, side-by-side LLM comparisons, and analytics charts.
+
+---
+
+## 🌐 1-Click Streamlit Cloud Deployment (100% Free)
+
+The app is fully configured for deployment on **Streamlit Community Cloud** with zero infrastructure cost:
+
+1. Push or fork this repository to your GitHub account (`https://github.com/shivanshu1512/query-router`).
+2. Go to **[share.streamlit.io](https://share.streamlit.io)** and log in with your GitHub account.
+3. Click **"New app"** and fill in:
+   - **Repository:** `shivanshu1512/query-router`
+   - **Branch:** `main`
+   - **Main file path:** `streamlit_app.py`
+4. *(Optional for live LLM calls)* Click **"Advanced settings"** -> **"Secrets"**, and paste:
+   ```toml
+   GROQ_API_KEY = "gsk_your_groq_api_key_here"
+   ```
+5. Click **"Deploy!"** Your app will be live with a permanent public URL in ~60 seconds.
 
 ---
 
